@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Your data and local settings (never commit these)
+workspace/
+outputs/
+models/
+samples/
+scratch/
+.env
+*.log
+
+# Node
+frontend/node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

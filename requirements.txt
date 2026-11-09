@@ -1,0 +1,15 @@
+# Core
+flask>=3.0
+pillow>=10.1
+numpy
+opencv-python-headless
+faster-whisper>=1.0
+huggingface_hub>=0.23
+
+# Person cut-out ("text behind you" templates). DirectML = any GPU on Windows; plain onnxruntime elsewhere.
+onnxruntime-directml>=1.17; sys_platform == "win32"
+onnxruntime>=1.17; sys_platform != "win32"
+
+# CUDA libraries for faster-whisper on NVIDIA GPUs (Windows / Linux). Skip on a computer without an NVIDIA GPU: the app falls back to CPU.
+nvidia-cublas-cu12; sys_platform != "darwin"
+nvidia-cudnn-cu12; sys_platform != "darwin"

@@ -1,0 +1,93 @@
+{
+"look_newel": {
+"heroMotion": "rise",
+"supportMotion": "fade",
+"heroTuck": ".34"
+},
+"look_soffit": {
+"heroMotion": "drop",
+"heroRotate": "-3",
+"heroTuck": ".62"
+},
+"look_casement": {
+"heroMotion": "wipe",
+"supportMotion": "type",
+"heroTuck": ".33"
+},
+"look_sash": {
+"heroMotion": "type",
+"supportMotion": "type",
+"heroRotate": "-4",
+"heroTuck": ".36"
+},
+"look_muntin": {
+"heroMotion": "blur",
+"supportMotion": "fade",
+"heroTuck": ".4"
+},
+"look_louver": {
+"heroMotion": "stretch",
+"heroTuck": ".82"
+},
+"look_shutter": {
+"heroMotion": "zoom",
+"supportMotion": "fade",
+"heroTuck": ".3"
+},
+"look_patio": {
+"heroMotion": "flip",
+"supportMotion": "bounce",
+"heroTuck": ".78"
+},
+"look_porch": {
+"heroMotion": "pop",
+"supportMotion": "bounce",
+"heroRotate": "-4",
+"heroTuck": ".44"
+},
+"look_awning": {},
+"look_sill": {
+"heroMotion": "zoom"
+},
+"look_joist": {
+"heroMotion": "skid"
+},
+"look_foyer": {
+"heroMotion": "wipe"
+},
+"look_loft": {
+"heroMotion": "blur"
+},
+"look_attic": {
+"heroMotion": "flicker"
+},
+"look_chimney": {
+"heroMotion": "stamp",
+"heroRotate": "-6"
+},
+"look_baluster": {
+"heroMotion": "type"
+},
+"look_banister": {
+"heroMotion": "pop",
+"heroRotate": "4"
+},
+"look_oculus": {},
+"look_fanlight": {},
+"look_clerestory": {},
+"look_tread": {},
+"look_riser": {},
+"look_parquet": {},
+"look_terrazzo": {},
+"look_fresco": {},
+"look_mural": {},
+"look_gazebo": {},
+"look_eave": {},
+"look_adobe": {},
+"look_tile": {},
+"look_thatch": {},
+"look_dome": {},
+"look_stucco": {},
+"look_shingle": {},
+"look_lath": {}
+}

@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Local Captions</title>
+<style>
+:root{--bg:#0f1115;--panel:#171a21;--panel2:#1e222b;--line:#2a2f3a;--text:#e8ebf1;--mut:#8b93a5;--acc:#ffd23f;--acc2:#7c5cff;--ok:#2bd67b;--err:#ff5d5d}
+*{box-sizing:border-box}
+/* no blinking text caret over plain labels/text (it showed up after clicks, and with Chrome caret-browsing) */
+body{caret-color:transparent;-webkit-user-select:none;user-select:none;cursor:default}
+input,textarea,#log,.nm{caret-color:auto;-webkit-user-select:text;user-select:text}
+input[type=text],input[type=number],textarea{caret-color:var(--acc)}
+button,label,select,.sty,#drop,.seg label{cursor:pointer}
+textarea{cursor:text}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+header h1{font-size:18px;margin:0;font-weight:700}
+.chip{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--panel2);color:var(--mut);border:1px solid var(--line)}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--acc)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:20px;padding:20px 22px;max-width:1500px;margin:auto}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 12px;font-weight:600}
+#drop{border:2px dashed #3a4151;border-radius:12px;padding:34px 16px;text-align:center;color:var(--mut);cursor:pointer;transition:.15s}
+#drop.on,#drop:hover{border-color:var(--acc);color:var(--text);background:#1b1e26}
+#drop b{color:var(--text);font-size:16px;display:block;margin-bottom:4px}
+.job{display:grid;grid-template-columns:1fr auto;gap:8px 14px;padding:12px 0;border-top:1px solid var(--line)}
+.job:first-child{border-top:0}
+.job .nm{font-weight:600;word-break:break-all}
+.job .meta{color:var(--mut);font-size:12px}
+.bar{height:6px;background:var(--panel2);border-radius:9px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));width:0;transition:width .3s}
+.btns{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end}
+button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:#4a5368}
+button.pri{background:var(--acc);color:#16181d;border-color:var(--acc);font-weight:700}
+button.pri:hover{filter:brightness(1.07)}
+button:disabled{opacity:.45;cursor:default}
+button.sm{padding:3px 8px;font-size:12px}
+.outs{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
+.outs a{font-size:12px;color:var(--text);text-decoration:none;background:#1a2a22;border:1px solid #24503a;padding:3px 9px;border-radius:99px}
+.outs a:hover{border-color:var(--ok)}
+.err{color:var(--err);font-size:12px;grid-column:1/-1}
+label{display:block;font-size:12px;color:var(--mut);margin:12px 0 4px}
+select,input[type=text],textarea,input[type=number]{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit}
+.row{display:flex;gap:10px;align-items:center}
+.row>*{flex:1}
+input[type=range]{width:100%;accent-color:var(--acc)}
+input[type=color]{width:100%;height:32px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg label{margin:0;flex:1;text-align:center;padding:7px 4px;cursor:pointer;color:var(--text);font-size:12px;border-right:1px solid var(--line);background:var(--panel2)}
+.seg label:last-child{border:0}
+.seg input{display:none}
+.seg input:checked+span{color:#16181d}
+.seg label:has(input:checked){background:var(--acc);color:#16181d;font-weight:700}
+.styles{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.sty{position:relative;border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;background:#000}
+.sty img{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;background:#222}
+.sty .t{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,#000c);padding:14px 7px 5px;font-size:12px;font-weight:600}
+.sty.sel{border-color:var(--acc);box-shadow:0 0 0 2px #ffd23f55}
+.sty .ck{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:#0008;border:2px solid #fff8}
+.sty.sel .ck{background:var(--acc);border-color:var(--acc)}
+.sty.sel .ck:after{content:"✓";color:#16181d;font-size:12px;font-weight:900;display:block;text-align:center;line-height:14px}
+.tiny{font-size:11px;color:var(--mut)}
+#overlay{position:fixed;inset:0;z-index:50;background:#0f1115ee;display:none;align-items:center;justify-content:center;font-size:28px;font-weight:700;border:4px dashed var(--acc);margin:10px;border-radius:18px;pointer-events:none}
+#overlay.on{display:flex}
+#banner{display:none;margin-bottom:14px;padding:12px 14px;border-radius:10px;background:#241f08;border:1px solid #6b5a14}
+#banner.on{display:block}
+#banner.idle{background:#10261b;border-color:#24503a}
+#banner .big{font-weight:700;font-size:15px}
+#banner .bar{height:10px;margin-top:8px}
+.steps{display:flex;gap:4px;margin:8px 0 2px;font-size:11px;color:var(--mut)}
+.steps span{flex:1;text-align:center;padding:3px 0;border-radius:6px;background:var(--panel2)}
+.steps span.d{color:var(--ok)} .steps span.c{background:var(--acc);color:#16181d;font-weight:700}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid #16181d55;border-top-color:#16181d;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-1px;margin-right:4px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#log{font:12px/1.5 Consolas,monospace;color:#aab2c3;max-height:220px;overflow:auto;white-space:pre-wrap;background:#0c0e12;border-radius:8px;padding:10px}
+#log .e{color:var(--err)}
+.missing{opacity:.55;text-decoration:line-through}
+.stage{font-size:13px;margin-top:6px}
+.stage b{color:var(--acc)}
+.modal{position:fixed;inset:0;background:#000b;display:none;z-index:20;padding:20px;overflow:auto}
+.modal.on{display:block}
+.mbox{max-width:1100px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.mgrid{display:grid;grid-template-columns:300px 1fr;gap:18px}
+@media(max-width:800px){.mgrid{grid-template-columns:1fr}}
+.mgrid video,.mgrid img{width:100%;border-radius:10px;background:#000;display:block}
+.seglist{max-height:60vh;overflow:auto;padding-right:6px}
+.seglist .s{display:grid;grid-template-columns:64px 1fr;gap:8px;margin-bottom:8px}
+.seglist .s button{height:34px}
+.seglist textarea{resize:vertical;min-height:34px}
+</style>
+</head>
+<body>
+<div id="overlay">Drop videos to add them</div>
+<header>
+  <h1>Local Captions</h1>
+  <span class="chip" id="gpu">…</span>
+  <span class="chip" id="qchip" style="display:none"></span>
+  <span style="flex:1"></span>
+  <button id="openOut" class="sm">Open outputs folder</button>
+</header>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <div id="drop"><b>Drop videos here</b>or click to choose · as many as you like · no length or count limit<input id="file" type="file" accept="video/*,audio/*" multiple hidden></div>
+      <div id="upl" class="tiny" style="margin-top:8px"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Videos</h2>
+      <div id="banner"></div>
+      <div id="jobs"><div class="tiny">Nothing yet. Drop some videos above.</div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Activity <span class="tiny" style="text-transform:none;letter-spacing:0">— what the app is doing right now</span></h2>
+      <div id="log">Waiting…</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>1 · Speech</h2>
+      <label>Language spoken</label>
+      <select id="lang">
+        <option value="auto">Auto-detect</option>
+        <option value="en">English</option>
+        <option value="hi">Hindi / Hinglish</option>
+        <option value="ur">Urdu</option><option value="bn">Bengali</option><option value="mr">Marathi</option>
+        <option value="gu">Gujarati</option><option value="pa">Punjabi</option><option value="ta">Tamil</option>
+        <option value="te">Telugu</option><option value="kn">Kannada</option><option value="ml">Malayalam</option>
+        <option value="es">Spanish</option><option value="fr">French</option><option value="de">German</option>
+        <option value="pt">Portuguese</option><option value="ar">Arabic</option><option value="id">Indonesian</option>
+      </select>
+      <label>Captions written as</label>
+      <div class="seg" id="mode">
+        <label><input type="radio" name="mode" value="spoken"><span>As spoken</span></label>
+        <label><input type="radio" name="mode" value="roman" checked><span>Hinglish (Roman)</span></label>
+        <label><input type="radio" name="mode" value="translate"><span>English</span></label>
+      </div>
+      <div class="tiny" style="margin-top:6px">As spoken: Hindi stays in Devanagari. Hinglish: Hindi words typed in English letters. English: translated.</div>
+      <label>Accuracy</label>
+      <select id="model">
+        <option value="turbo">Fast · large-v3-turbo (recommended)</option>
+        <option value="large">Best · large-v3 (slower, always used for English translation)</option>
+        <option value="medium">Medium</option>
+        <option value="small">Small (quick drafts)</option>
+      </select>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>2 · Styles <span class="tiny" style="text-transform:none;letter-spacing:0">— pick one or many, each makes its own MP4</span></h2>
+      <div class="styles" id="styles"></div>
+      <div class="row" style="margin-top:10px"><button class="sm" id="allSty">Select all</button><button class="sm" id="noSty">Clear</button></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>3 · Tweak <span class="tiny" style="text-transform:none;letter-spacing:0">— applies to all selected styles</span></h2>
+      <div class="row" style="align-items:flex-start">
+        <div style="flex:1">
+          <label>Font size <b id="vSize"></b></label>
+          <input type="range" id="size" min="0" max="200" value="0">
+          <label>Vertical position <b id="vY"></b></label>
+          <input type="range" id="y" min="0" max="78" value="0">
+          <label>Words on screen <b id="vWords"></b></label>
+          <input type="range" id="words" min="0" max="8" value="0">
+        </div>
+        <svg id="phone" width="74" height="132" viewBox="0 0 74 132" style="flex:none;max-width:74px">
+          <rect x="1" y="1" width="72" height="130" rx="9" fill="#10131a" stroke="#3a4151"/>
+          <rect x="2" y="2" width="70" height="15" fill="#ff5d5d33"/><rect x="2" y="102" width="70" height="28" fill="#ff5d5d33"/>
+          <rect x="64" y="60" width="8" height="40" fill="#ff5d5d33"/>
+          <rect id="cap" x="10" y="80" width="54" height="10" rx="2" fill="#ffd23f"/>
+        </svg>
+      </div>
+      <div class="tiny">Red = covered by Instagram's own buttons/text. Position is kept inside the safe area.</div>
+      <div class="row">
+        <div><label>Text colour</label><input type="color" id="color" value="#ffffff"></div>
+        <div><label>Highlight colour</label><input type="color" id="active" value="#ffe600"></div>
+        <div><label>Outline / box</label><input type="color" id="outline_color" value="#000000"></div>
+      </div>
+      <div class="row">
+        <div><label>Letter case</label><select id="uppercase"><option value="">Style default</option><option value="1">UPPERCASE</option><option value="0">Normal</option></select></div>
+        <div><label>Fit non-vertical video</label><select id="fit"><option value="auto">Auto (blurred fill)</option><option value="cover">Crop to fill</option><option value="contain">Black bars</option></select></div>
+        <div><label>Timing offset (s)</label><input type="number" id="offset" value="0" step="0.05"></div>
+      </div>
+      <div class="row" style="margin-top:6px"><button class="sm" id="resetTw">Reset tweaks</button></div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>4 · Go</h2>
+      <button class="pri" id="goAll" style="width:100%;padding:11px">Transcribe + render all videos</button>
+      <div class="row" style="margin-top:8px">
+        <button id="trOnly">Transcribe only (then edit)</button>
+        <button id="reAll">Render all (use edited text)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="mbox">
+  <div class="row" style="margin-bottom:12px"><h2 style="margin:0;flex:1" id="mTitle">Edit transcript</h2>
+    <button id="mClose" style="flex:none">Close</button></div>
+  <div class="mgrid">
+    <div>
+      <video id="mVid" controls playsinline></video>
+      <button id="mFrame" style="width:100%;margin-top:8px">Preview captions at this moment</button>
+      <img id="mImg" style="margin-top:8px;display:none" alt="">
+    </div>
+    <div>
+      <div class="tiny" style="margin-bottom:8px">One line per caption sentence. Fix words freely — timing of unchanged words is kept; new words are spread across the gap. Clear a line to delete it.</div>
+      <div class="seglist" id="mSegs"></div>
+      <div class="row" style="margin-top:10px"><button id="mSave" class="pri">Save changes</button><button id="mSaveRender">Save + render selected styles</button><a id="mSrt" class="tiny" style="flex:none;color:var(--acc)" href="#">Download .srt</a></div>
+    </div>
+  </div>
+</div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const LS={get(k,d){try{const v=localStorage.getItem('lc_'+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('lc_'+k,JSON.stringify(v))}catch(e){}}};
+let S={styles:[],jobs:[]}, selected=new Set(LS.get('sel',['hormozi'])), editing=null;
+const TW=['size','y','words','color','active','outline_color','uppercase'];
+let tw=LS.get('tw',{});            // only keys the user touched are sent
+
+function overrides(){const o={};for(const k of TW){if(tw[k]!==undefined&&tw[k]!=='')o[k]=tw[k]}
+  if(o.words)o.max_chars=Math.max(14,o.words*9);return o}
+function opts(){return {lang:$('#lang').value,mode:document.querySelector('input[name=mode]:checked').value,model:$('#model').value,
+  styles:[...selected],overrides:overrides(),fit:$('#fit').value,offset:parseFloat($('#offset').value)||0}}
+
+async function api(u,o){const r=await fetch(u,o);if(!r.ok)throw new Error(await r.text());return r}
+const fmtT=s=>{s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+
+/* ---- upload ---- */
+const drop=$('#drop'),file=$('#file'),overlay=$('#overlay');
+drop.onclick=()=>file.click();
+// the whole page is a drop target (a drop that misses the box would otherwise make the browser open the video)
+let dragN=0;
+const hasFiles=ev=>ev.dataTransfer&&[...ev.dataTransfer.types].includes('Files');
+window.addEventListener('dragenter',ev=>{if(!hasFiles(ev))return;ev.preventDefault();dragN++;overlay.classList.add('on')});
+window.addEventListener('dragover',ev=>{if(!hasFiles(ev))return;ev.preventDefault();ev.dataTransfer.dropEffect='copy'});
+window.addEventListener('dragleave',ev=>{if(!hasFiles(ev))return;dragN=Math.max(0,dragN-1);if(!dragN)overlay.classList.remove('on')});
+window.addEventListener('drop',ev=>{if(!hasFiles(ev))return;ev.preventDefault();dragN=0;overlay.classList.remove('on');upload([...ev.dataTransfer.files])});
+file.onchange=()=>{upload([...file.files]);file.value=''};
+function xhrUpload(f,cb){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST','/api/upload');
+  x.upload.onprogress=e=>{if(e.lengthComputable)cb(e.loaded/e.total)};x.onload=()=>x.status<300?res():rej(new Error(x.responseText||x.status));
+  x.onerror=()=>rej(new Error('network error'));const fd=new FormData();fd.append('files',f);x.send(fd)})}
+async function upload(files){
+  files=files.filter(f=>/^(video|audio)\//.test(f.type)||/\.(mp4|mov|mkv|webm|m4v|avi|mp3|wav|m4a)$/i.test(f.name));
+  if(!files.length){$('#upl').textContent='No video files found in what you dropped.';return}
+  for(let i=0;i<files.length;i++){
+    const label=`Uploading ${i+1} of ${files.length}: ${files[i].name}`;
+    $('#upl').textContent=label+' — 0%';
+    try{await xhrUpload(files[i],p=>$('#upl').textContent=label+' — '+Math.round(p*100)+'%')}catch(e){$('#upl').textContent='Upload failed: '+e.message;return}
+    poll();
+  }
+  $('#upl').textContent=`✔ Added ${files.length} file(s). Pick styles on the right, then press “Transcribe + render all”.`;poll();
+}
+
+/* ---- styles ---- */
+function buildStyles(){
+  const g=$('#styles');g.innerHTML='';
+  for(const s of S.styles){
+    const d=document.createElement('div');d.className='sty'+(selected.has(s.id)?' sel':'');d.dataset.id=s.id;
+    d.innerHTML=`<img loading="lazy" alt="${s.label}"><div class="ck"></div><div class="t">${s.label}</div>`;
+    d.title=s.desc;
+    d.onclick=()=>{selected.has(s.id)?selected.delete(s.id):selected.add(s.id);d.classList.toggle('sel');LS.set('sel',[...selected])};
+    g.appendChild(d);
+  }
+  refreshPreviews();
+}
+let pvT;function refreshPreviews(){clearTimeout(pvT);pvT=setTimeout(()=>{const ov=encodeURIComponent(JSON.stringify(overrides()));
+  document.querySelectorAll('.sty').forEach(d=>{d.querySelector('img').src=`/api/style-preview?style=${d.dataset.id}&ov=${ov}`})},350)}
+$('#allSty').onclick=()=>{S.styles.forEach(s=>selected.add(s.id));LS.set('sel',[...selected]);buildStyles()};
+$('#noSty').onclick=()=>{selected.clear();LS.set('sel',[]);buildStyles()};
+
+/* ---- tweaks ---- */
+function syncTweakUI(){
+  $('#vSize').textContent=tw.size?tw.size+'px':'(style default)';$('#size').value=tw.size||0;
+  $('#vY').textContent=tw.y?tw.y+'%':'(style default)';$('#y').value=tw.y||0;
+  $('#vWords').textContent=tw.words||'(style default)';$('#words').value=tw.words||0;
+  if(tw.color)$('#color').value=tw.color;if(tw.active)$('#active').value=tw.active;if(tw.outline_color)$('#outline_color').value=tw.outline_color;
+  $('#uppercase').value=tw.uppercase??'';
+  const y=tw.y||66;$('#cap').setAttribute('y',Math.max(2,y/100*130-5));
+}
+for(const k of ['size','y','words']) $('#'+k).oninput=e=>{const v=+e.target.value;tw[k]=v||undefined;LS.set('tw',tw);syncTweakUI();refreshPreviews()};
+for(const k of ['color','active','outline_color']) $('#'+k).oninput=e=>{tw[k]=e.target.value;LS.set('tw',tw);refreshPreviews()};
+$('#uppercase').onchange=e=>{tw.uppercase=e.target.value===''?undefined:e.target.value==='1';LS.set('tw',tw);refreshPreviews()};
+$('#resetTw').onclick=()=>{tw={};LS.set('tw',tw);$('#color').value='#ffffff';$('#active').value='#ffe600';$('#outline_color').value='#000000';syncTweakUI();refreshPreviews()};
+for(const id of ['lang','model','fit','offset']){const el=$('#'+id);el.value=LS.get(id,el.value);el.onchange=()=>LS.set(id,el.value)}
+const savedMode=LS.get('mode','roman');document.querySelector(`input[name=mode][value=${savedMode}]`).checked=true;
+document.querySelectorAll('input[name=mode]').forEach(r=>r.onchange=()=>LS.set('mode',r.value));
+
+/* ---- jobs ---- */
+const BUSY=['queued','transcribing','rendering'];
+const STEPS=['Added','Transcribe','Check text','Render','Done'];
+function stepIdx(j){return j.status==='done'?4:j.status==='rendering'?3:(j.status==='queued'&&j.step==='render')?3:j.status==='transcribing'?1:(j.status==='queued')?1:j.has_transcript?2:0}
+const fmtE=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function jobHTML(j){
+  const busy=BUSY.includes(j.status);
+  const pct=Math.round((j.progress||0)*100);
+  const outs=(j.outputs||[]).map(o=>`<a href="/outputs/${encodeURIComponent(o.file)}" target="_blank" title="${o.encoder}, rendered in ${o.seconds}s">▶ ${o.file}</a> <a href="/outputs/${encodeURIComponent(o.file)}?dl=1" title="download">⬇</a>`).join('');
+  const meta=`${fmtT(j.duration||0)} · ${j.width}×${j.height}`+(j.tinfo?` · ${j.language||''} · ${j.tinfo}`:'');
+  const si=stepIdx(j);
+  const steps=`<div class="steps">${STEPS.map((s,i)=>`<span class="${i<si||j.status==='done'?'d':i===si?'c':''}">${i<si||j.status==='done'?'✓ ':''}${i===si&&busy?'<i class="spin"></i>':''}${s}</span>`).join('')}</div>`;
+  const el=busy&&j.started?` · ${fmtE(S.now-j.started)} elapsed`:'';
+  const state=busy?`<div class="stage"><b>${j.stage||j.status}</b> ${j.status==='queued'?'':pct+'%'}${el}</div><div class="bar"><i style="width:${j.status==='queued'?3:Math.max(3,pct)}%"></i></div>`
+    :`<div class="meta">${j.status==='done'?'✔ Finished — files below':(j.status==='ready'?'Transcript ready — edit it or press Render':(j.status==='error'?'':'Waiting. Press Run (or the big yellow button).'))}</div>`;
+  return `<div class="job" data-id="${j.id}"><div><div class="nm">${j.name}</div><div class="meta">${meta}</div>${steps}${state}</div>
+   <div class="btns">
+     <button class="sm" data-a="go" ${busy?'disabled':''}>Run</button>
+     <button class="sm" data-a="edit" ${(!j.has_transcript||busy)?'disabled':''}>Edit transcript</button>
+     <button class="sm" data-a="render" ${(!j.has_transcript||busy)?'disabled':''}>Render</button>
+     <button class="sm" data-a="del" ${busy?'disabled':''}>✕</button></div>
+   ${j.status==='error'?`<div class="err">${j.message}</div>`:''}
+   ${outs?`<div class="outs">${outs}</div>`:''}</div>`;
+}
+function renderJobs(){
+  const box=$('#jobs');if(!S.jobs.length){box.innerHTML='<div class="tiny">Nothing yet. Drop some videos above.</div>';return}
+  box.innerHTML=S.jobs.map(jobHTML).join('');
+}
+$('#jobs').onclick=async e=>{
+  const b=e.target.closest('button');if(!b)return;const id=b.closest('.job').dataset.id,a=b.dataset.a;
+  if(a==='go')await run(id,'auto');
+  if(a==='render')await run(id,'render');
+  if(a==='edit')openEditor(id);
+  if(a==='del'){await api('/api/jobs/'+id,{method:'DELETE'});}
+  poll();
+};
+async function run(id,kind){
+  const o=opts();if((kind==='auto'||kind==='render')&&!o.styles.length){alert('Pick at least one style.');return}
+  await api(`/api/jobs/${id}/run`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...o,kind})}).catch(()=>{});
+}
+$('#goAll').onclick=async()=>{for(const j of S.jobs)if(!['queued','transcribing','rendering'].includes(j.status))await run(j.id,'auto');poll()};
+$('#trOnly').onclick=async()=>{for(const j of S.jobs)if(!['queued','transcribing','rendering'].includes(j.status))await run(j.id,'transcribe');poll()};
+$('#reAll').onclick=async()=>{for(const j of S.jobs)if(j.has_transcript&&!['queued','transcribing','rendering'].includes(j.status))await run(j.id,'render');poll()};
+$('#openOut').onclick=()=>api('/api/open-outputs',{method:'POST'});
+
+function renderBanner(r){
+  const b=$('#banner'),jobs=r.jobs,active=jobs.find(j=>j.status==='transcribing'||j.status==='rendering');
+  const waiting=jobs.filter(j=>j.status==='queued').length;
+  if(!active&&!waiting){
+    const done=jobs.filter(j=>j.status==='done').length;
+    if(done&&jobs.length&&jobs.every(j=>!BUSY.includes(j.status))){b.className='on idle';
+      const n=jobs.reduce((a,j)=>a+(j.outputs||[]).length,0);
+      b.innerHTML=`<div class="big">✔ All finished — ${n} caption file(s) ready</div><div class="tiny">Click ▶ under a video to watch it, or “Open outputs folder” (top right).</div>`}
+    else b.className='';
+    return}
+  const j=active||jobs.find(x=>x.status==='queued');
+  const pct=Math.round((j.progress||0)*100),total=jobs.filter(x=>x.status!=='error').length;
+  const doneN=jobs.filter(x=>x.status==='done').length;
+  b.className='on';
+  b.innerHTML=`<div class="big"><i class="spin" style="border-color:#ffd23f55;border-top-color:#ffd23f"></i>Working on “${j.name}”: ${j.stage||j.status}${active?' — '+pct+'%':''}</div>
+   <div class="tiny">${active&&j.started?fmtE(r.now-j.started)+' elapsed · ':''}${doneN} of ${total} video(s) finished${waiting?' · '+waiting+' waiting in line':''}</div>
+   <div class="bar"><i style="width:${active?Math.max(3,pct):3}%"></i></div>`;
+}
+let lastLog='';
+function renderLog(r){
+  const t=(r.log||[]).join('\n');if(t===lastLog)return;lastLog=t;const el=$('#log');
+  const atEnd=el.scrollTop+el.clientHeight>=el.scrollHeight-30;
+  el.innerHTML=(r.log||[]).map(l=>/ERROR/.test(l)?`<span class="e">${l}</span>`:l).join('\n')||'Waiting…';
+  if(atEnd)el.scrollTop=el.scrollHeight;
+}
+async function poll(){
+  try{
+    const r=await (await api('/api/state')).json();
+    const first=!S.styles.length;S=r;
+    $('#gpu').textContent=(r.gpu?'GPU transcription on':'CPU only')+(r.nvenc?' · NVENC encode':' · x264 encode');
+    $('#gpu').className='chip '+(r.gpu?'ok':'warn');
+    renderBanner(r);renderLog(r);
+    const q=$('#qchip');q.style.display=r.queue?'':'none';q.textContent=r.queue+' queued';
+    if(first){buildStyles();syncTweakUI()}
+    if(!document.activeElement||!document.activeElement.closest('#modal'))renderJobs();
+  }catch(e){}
+}
+setInterval(poll,1300);poll();
+
+/* ---- editor ---- */
+async function openEditor(id){
+  editing=id;const j=S.jobs.find(x=>x.id===id);$('#mTitle').textContent='Edit transcript · '+j.name;
+  const tr=await (await api(`/api/jobs/${id}/transcript`)).json();
+  $('#mVid').src=`/api/jobs/${id}/media`;$('#mImg').style.display='none';
+  $('#mSegs').innerHTML=tr.segments.map((s,i)=>`<div class="s"><button data-t="${s.start}">${fmtT(s.start)} ▶</button><textarea rows="2" data-i="${i}">${s.text.replace(/</g,'&lt;')}</textarea></div>`).join('');
+  $('#mSrt').href=`/api/jobs/${id}/srt`;
+  $('#modal').classList.add('on');
+}
+$('#mSegs').onclick=e=>{const b=e.target.closest('button');if(b){const v=$('#mVid');v.currentTime=+b.dataset.t;v.play()}};
+$('#mClose').onclick=()=>{$('#modal').classList.remove('on');$('#mVid').pause();$('#mVid').removeAttribute('src');editing=null};
+async function saveEdits(){const texts=[...document.querySelectorAll('#mSegs textarea')].map(t=>t.value.trim());
+  await api(`/api/jobs/${editing}/transcript`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({texts})});}
+$('#mSave').onclick=async()=>{await saveEdits();$('#mClose').click();poll()};
+$('#mSaveRender').onclick=async()=>{const id=editing;await saveEdits();$('#mClose').click();await run(id,'render');poll()};
+$('#mFrame').onclick=async()=>{
+  const o=opts(),st=o.styles[0]||'hormozi',t=$('#mVid').currentTime;
+  await saveEdits().catch(()=>{});
+  const img=$('#mImg');img.style.display='block';img.src=`/api/jobs/${editing}/frame?t=${t}&style=${st}&ov=${encodeURIComponent(JSON.stringify(o.overrides))}&fit=${o.fit}&offset=${o.offset}&_=${Date.now()}`;
+};
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#mClose').click()});
+</script>
+</body>
+</html>

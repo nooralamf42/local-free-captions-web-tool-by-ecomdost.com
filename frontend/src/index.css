@@ -1,0 +1,44 @@
+﻿@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-destructive: var(--destructive);
+  --radius-lg: 0.6rem;
+}
+:root {
+  --background: #0c0d10; --foreground: #ececf1; --card: #14161b; --muted: #1b1e25; --muted-foreground: #8a91a2;
+  --border: #272b35; --primary: #3b82f6; --primary-foreground: #fff; --accent: #222633; --ring: #3b82f6;
+  --success: #34d399; --destructive: #f87171;
+}
+html, body, #root { height: 100%; }
+body { background: var(--background); color: var(--foreground); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; margin: 0; overflow: hidden; }
+* { border-color: var(--border); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #2b303c; border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+input[type=color] { -webkit-appearance: none; border: 0; padding: 0; background: none; cursor: pointer; }
+input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type=color]::-webkit-color-swatch { border: 1px solid var(--border); border-radius: 6px; }
+
+/* feel like an app, not a web page: no accidental text selection / image dragging */
+body { user-select: none; -webkit-user-select: none; cursor: default; }
+input, textarea, [contenteditable=true], .selectable { user-select: text; -webkit-user-select: text; cursor: text; }
+button, [role=tab], [role=button], select, a, label { cursor: pointer; }
+img, video, canvas { -webkit-user-drag: none; user-drag: none; }
+::selection { background: transparent; }
+input::selection, textarea::selection { background: #3b82f6aa; }
+
+
+/* shadcn Select label inside header */
+
